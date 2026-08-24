@@ -2,9 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 public class GameController : MonoBehaviour
 {
+    public TextMeshProUGUI scoreText;
+
     [Header("Player Settings")]
     public Transform player;
     public Rigidbody2D playerRb;
@@ -20,9 +24,14 @@ public class GameController : MonoBehaviour
 
     [Header("UI Elements")]
     public Image chargeBarFill;
-    public Text scoreText;
     public GameObject gameOverPanel;
 
+    [Header("Platform Spawner")]
+    public GameObject platformPrefab;
+    public float spawnYDistance = 3.2f;
+
+    private List<GameObject> activePlatforms = new List<GameObject>();
+    private float lastPlatformY = -2f;
     private float currentCharge = 0f;
     private bool isCharging = false;
     private bool isGrounded = true;
@@ -39,7 +48,31 @@ public class GameController : MonoBehaviour
         if (meteorFlameTrail) meteorFlameTrail.SetActive(false);
 
         score = 0; 
-        UpdateScoreText(); 
+        UpdateScoreText();
+
+        SpawnNextPlatform();
+    }
+
+    public void SpawnNextPlatform()
+    {
+        if (platformPrefab == null) return;
+
+       
+        if (activePlatforms.Count >= 2)
+        {
+            Destroy(activePlatforms[0]);
+            activePlatforms.RemoveAt(0); 
+        }
+
+        direction = (Random.value > 0.5f) ? 1 : -1;
+        float spawnX = direction * 2.2f;
+        float spawnY = lastPlatformY + spawnYDistance;
+
+        Vector3 spawnPos = new Vector3(spawnX, spawnY, 0);
+        GameObject newPlat = Instantiate(platformPrefab, spawnPos, Quaternion.identity);
+
+        activePlatforms.Add(newPlat);
+        lastPlatformY = spawnY;
     }
 
     void Update()
@@ -68,6 +101,7 @@ public class GameController : MonoBehaviour
             score += 1;
             UpdateScoreText();
             hasScoredThisJump = true; // Mark score 
+            SpawnNextPlatform();
         }
 
         // Power up bar
@@ -150,16 +184,16 @@ public class GameController : MonoBehaviour
         if (meteorFlameTrail) meteorFlameTrail.SetActive(false);
         if (meteorImpactFX) meteorImpactFX.Play();
 
-        // T�m t?t c? b? t??ng v� k�ch ho?t v? n�t
-        GameObject[] platforms = GameObject.FindGameObjectsWithTag("Platform");
-        foreach (GameObject plat in platforms)
+        foreach (GameObject plat in activePlatforms)
         {
-            // Th�m l?c ?�nh v? b? t??ng th�nh t?ng m?nh
-            Rigidbody2D[] parts = plat.GetComponentsInChildren<Rigidbody2D>();
-            foreach (Rigidbody2D part in parts)
+            if (plat != null)
             {
-                part.bodyType = RigidbodyType2D.Dynamic;
-                part.AddForce(Random.insideUnitCircle * 10f, ForceMode2D.Impulse);
+                Rigidbody2D[] parts = plat.GetComponentsInChildren<Rigidbody2D>();
+                foreach (Rigidbody2D part in parts)
+                {
+                    part.bodyType = RigidbodyType2D.Dynamic;
+                    part.AddForce(Random.insideUnitCircle * 12f, ForceMode2D.Impulse);
+                }
             }
         }
 
@@ -173,9 +207,11 @@ public class GameController : MonoBehaviour
     }
     void UpdateScoreText()
     {
-        if (scoreText != null)
-        {
-            scoreText.text = score.ToString(); // In
-        }
+        if (scoreText != null) scoreText.text = score.ToString();
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
