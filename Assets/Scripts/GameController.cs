@@ -57,19 +57,24 @@ public class GameController : MonoBehaviour
     {
         if (platformPrefab == null) return;
 
-       
         if (activePlatforms.Count >= 2)
         {
             Destroy(activePlatforms[0]);
-            activePlatforms.RemoveAt(0); 
+            activePlatforms.RemoveAt(0);
         }
 
-        direction = (Random.value > 0.5f) ? 1 : -1;
+        direction = Random.value > 0.5f ? 1 : -1;
+
         float spawnX = direction * 2.2f;
         float spawnY = lastPlatformY + spawnYDistance;
 
         Vector3 spawnPos = new Vector3(spawnX, spawnY, 0);
-        GameObject newPlat = Instantiate(platformPrefab, spawnPos, Quaternion.identity);
+
+        GameObject newPlat = Instantiate(
+            platformPrefab,
+            spawnPos,
+            Quaternion.identity
+        );
 
         activePlatforms.Add(newPlat);
         lastPlatformY = spawnY;
@@ -96,7 +101,9 @@ public class GameController : MonoBehaviour
             }
         }
 
-        if (isGrounded && !hasScoredThisJump && playerRb.linearVelocity.magnitude < 0.1f)
+        if (isGrounded &&
+    !hasScoredThisJump &&
+    playerRb.linearVelocity.sqrMagnitude < 0.01f)
         {
             score += 1;
             UpdateScoreText();
@@ -143,7 +150,7 @@ public class GameController : MonoBehaviour
 
         yield return new WaitForSeconds(2.0f); // T?m d?ng 2 gi�y
 
-        // Hi?n l?i d?ng THI�N TH?CH r?i t? tr�n ??nh xu?ng
+        // Hi�n l?i d?ng THI�N TH?CH r?i t? tr�n ??nh xu?ng
         isWaitingForMeteor = false;
         isMeteorState = true;
         player.position = new Vector3(0, 12f, 0); // Xu?t ph�t tr�n cao
