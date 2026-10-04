@@ -557,7 +557,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 667074489}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameController, Assembly-CSharp
         m_MethodName: RestartGame
         m_Mode: 1
@@ -804,7 +804,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 667074488}
-  - component: {fileID: 667074489}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -827,32 +826,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &667074489
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 667074487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb3a07181ab918b4885d9a6eee4bb63a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameController
-  scoreText: {fileID: 2059575935}
-  player: {fileID: 1592259051}
-  playerRb: {fileID: 1592259049}
-  jumpAngle: 75
-  minForce: 8
-  maxForce: 22
-  chargeSpeed: 1.2
-  jumpExplosionFX: {fileID: 0}
-  meteorImpactFX: {fileID: 0}
-  meteorFlameTrail: {fileID: 0}
-  chargeBarFill: {fileID: 0}
-  gameOverPanel: {fileID: 764091862}
-  platformPrefab: {fileID: 2319146008291841798, guid: 50cad58f503b97747bb79a17bf737ecd, type: 3}
-  spawnYDistance: 3.2
 --- !u!1 &764091862
 GameObject:
   m_ObjectHideFlags: 0
