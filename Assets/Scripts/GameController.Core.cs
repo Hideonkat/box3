@@ -17,14 +17,21 @@ public partial class GameController
 
     [Header("UI Elements")]
     public GameObject gameOverPanel;
-
     private float currentCharge;
     private bool isCharging;
     private bool isGrounded = true;
     private bool isMeteorState;
     private bool isWaitingForMeteor;
     private bool hasScoredThisJump = true;
-    private int direction = 1;
+
+    [Header("Game Over")]
+    public float fallLimit = -8f;
+    private bool isGameOver;
+
+    [Header("Camera")]
+    public Camera gameCamera;
+    public float cameraFollowOffsetY = 2f;
+    public float cameraFollowSpeed = 5f;
 
     private void Start()
     {
@@ -41,12 +48,25 @@ public partial class GameController
         }
 
         ResetScore();
+
+        if (startingPlatform != null) 
+        {
+            currentPlatform = startingPlatform;
+            activePlatforms.Add(startingPlatform);
+            lastPlatformY = startingPlatform.transform.position.y;
+        }
+
         SpawnNextPlatform();
+
+        if (gameCamera == null)
+        {
+            gameCamera = Camera.main;
+        }
     }
 
     private void Update()
     {
-        if (isWaitingForMeteor)
+        if (isWaitingForMeteor || isGameOver)
         {
             return;
         }
@@ -55,23 +75,82 @@ public partial class GameController
         HandleLanding();
         HandleCharge();
         HandleScreenExit();
+        HandleFall();
+        HandleCameraFollow();
     }
 
-    private void HandleTouchInput()
+    private void HandleCameraFollow()
     {
-        if (Input.touchCount <= 0 || !isGrounded)
+        if (gameCamera == null || player == null)
         {
             return;
         }
 
-        Touch touch = Input.GetTouch(0);
+        float targetY = player.position.y + cameraFollowOffsetY;
+        Vector3 cameraPosition = gameCamera.transform.position;
 
-        if (touch.phase == TouchPhase.Began)
+        if (targetY > cameraPosition.y)
+        {
+            cameraPosition.y = Mathf.Lerp(
+                cameraPosition.y,
+                targetY,
+                cameraFollowSpeed * Time.deltaTime);
+
+            gameCamera.transform.position = cameraPosition;
+        }
+    }
+
+    private void HandleFall()
+    {
+        if (player == null)
+        {
+            return;
+        }
+
+        if (player.position.y < fallLimit)
+        {
+            isGameOver = true;
+            isCharging = false;
+
+            if (playerRb)
+            {
+                playerRb.linearVelocity = Vector2.zero;
+                playerRb.simulated = false;
+            }
+
+            ShowGameOver();
+        }
+    }
+
+    private void HandleTouchInput()
+    {
+        if (!isGrounded)
+        {
+            return;
+        }
+
+        bool pressStarted = false;
+        bool pressEnded = false;
+
+#if UNITY_EDITOR
+        pressStarted = Input.GetMouseButtonDown(0);
+        pressEnded = Input.GetMouseButtonUp(0);
+#endif
+
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+
+            pressStarted = touch.phase == TouchPhase.Began;
+            pressEnded = touch.phase == TouchPhase.Ended;
+        }
+
+        if (pressStarted)
         {
             isCharging = true;
             currentCharge = 0f;
         }
-        else if (touch.phase == TouchPhase.Ended && isCharging)
+        else if (pressEnded && isCharging)
         {
             isCharging = false;
             LaunchPlayer();
@@ -80,14 +159,18 @@ public partial class GameController
 
     private void HandleLanding()
     {
-        if (isGrounded &&
-            !hasScoredThisJump &&
-            playerRb.linearVelocity.sqrMagnitude < 0.01f)
+        if (!isGrounded ||
+            hasScoredThisJump ||
+            playerRb.linearVelocity.sqrMagnitude >= 0.01f)
         {
-            AddScore();
-            hasScoredThisJump = true;
-            SpawnNextPlatform();
+            return;
         }
+
+        RemovePreviousPlatform();
+
+        AddScore();
+        hasScoredThisJump = true;
+        SpawnNextPlatform();
     }
 
     private void HandleCharge()
@@ -146,6 +229,7 @@ public partial class GameController
         if (collision.gameObject.CompareTag("Platform"))
         {
             isGrounded = true;
+            landedPlatform = collision.gameObject;
         }
     }
 
