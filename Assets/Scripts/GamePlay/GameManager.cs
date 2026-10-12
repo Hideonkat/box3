@@ -36,6 +36,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (cameraFollow != null &&
+            platformSpawner != null)
+        {
+            cameraFollow.SetTarget(
+                platformSpawner.CurrentPlatformTransform);
+        }
+    }
+
     private void Awake()
     {
         mainCamera = Camera.main;
@@ -99,9 +109,11 @@ public class GameManager : MonoBehaviour
             gameUI.AddScore(points);
         }
 
-        if (cameraFollow != null)
+        if (cameraFollow != null &&
+            platformSpawner != null)
         {
-            cameraFollow.SetTarget(player.transform);
+            cameraFollow.SetTarget(
+                platformSpawner.CurrentPlatformTransform);
         }
     }
 

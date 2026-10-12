@@ -2,51 +2,54 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    [Header("Target")]
-    [SerializeField] private Transform target;
+    [Header("Boundary Walls")]
+    [SerializeField] private Transform leftBoundary;
+    [SerializeField] private Transform rightBoundary;
 
     [Header("Follow Settings")]
     [SerializeField] private float verticalOffset = 2f;
     [SerializeField] private float followSpeed = 5f;
 
-    private void Awake()
-    {
-        if (target == null)
-        {
-            PlayerController player =
-                FindFirstObjectByType<PlayerController>();
-
-            if (player != null)
-            {
-                target = player.transform;
-            }
-        }
-    }
+    private Transform target;
 
     private void LateUpdate()
     {
-        if (target == null)
+        if (target != null)
+        {
+            Vector3 cameraPosition = transform.position;
+            float targetY = target.position.y + verticalOffset;
+
+            if (targetY > cameraPosition.y)
+            {
+                cameraPosition.y = Mathf.Lerp(
+                    cameraPosition.y,
+                    targetY,
+                    followSpeed * Time.deltaTime);
+
+                transform.position = cameraPosition;
+            }
+        }
+
+        MoveBoundaryWalls();
+    }
+
+    private void MoveBoundaryWalls()
+    {
+        MoveWallToCameraHeight(leftBoundary);
+        MoveWallToCameraHeight(rightBoundary);
+    }
+
+    private void MoveWallToCameraHeight(
+        Transform boundaryWall)
+    {
+        if (boundaryWall == null)
         {
             return;
         }
 
-        Vector3 cameraPosition =
-            transform.position;
-
-        float targetY =
-            target.position.y + verticalOffset;
-
-        if (targetY <= cameraPosition.y)
-        {
-            return;
-        }
-
-        cameraPosition.y = Mathf.Lerp(
-            cameraPosition.y,
-            targetY,
-            followSpeed * Time.deltaTime);
-
-        transform.position = cameraPosition;
+        Vector3 wallPosition = boundaryWall.position;
+        wallPosition.y = transform.position.y;
+        boundaryWall.position = wallPosition;
     }
 
     public void SetTarget(Transform newTarget)

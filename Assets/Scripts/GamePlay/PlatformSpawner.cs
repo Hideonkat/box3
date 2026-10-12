@@ -20,6 +20,10 @@ public class PlatformSpawner : MonoBehaviour
     [SerializeField] private float minThicknessMultiplier = 0.8f;
     [SerializeField] private float maxThicknessMultiplier = 1.1f;
 
+    [Header("Horizontal Limits")]
+    [SerializeField] private float minimumSpawnX = -3.5f;
+    [SerializeField] private float maximumSpawnX = 3.5f;
+
     private readonly List<GameObject> activePlatforms =
         new List<GameObject>();
 
@@ -27,6 +31,21 @@ public class PlatformSpawner : MonoBehaviour
     private float lastPlatformY;
     private int direction = -1;
     private int successfulJumps;
+
+    public Transform CurrentPlatformTransform
+    {
+        get
+        {
+            if (currentPlatform == null)
+            {
+                return null;
+            }
+
+            return currentPlatform.transform;
+        }
+    }
+
+
 
     public int NextDirection
     {
@@ -148,6 +167,12 @@ public class PlatformSpawner : MonoBehaviour
                 difficulty));
 
         float spawnX = direction * horizontalDistance;
+
+        spawnX = Mathf.Clamp(
+            spawnX,
+            minimumSpawnX,
+            maximumSpawnX);
+
         float spawnY = lastPlatformY + verticalDistance;
 
         Vector3 spawnPosition = new Vector3(

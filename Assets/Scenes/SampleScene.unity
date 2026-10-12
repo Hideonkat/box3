@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 112898935}
   m_Layer: 0
   m_Name: Platform
-  m_TagString: Untagged
+  m_TagString: Platform
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -147,7 +147,7 @@ BoxCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: cd4479556b103ca49957a0c875f38357, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -487,6 +487,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -612,6 +613,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6018f1f94e305e74c8997152688f4df9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
+  target: {fileID: 0}
+  leftBoundary: {fileID: 1720800506}
+  rightBoundary: {fileID: 1211086799}
+  verticalOffset: 2
+  followSpeed: 5
 --- !u!1 &591143909
 GameObject:
   m_ObjectHideFlags: 0
@@ -695,8 +713,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1592259052}
-        m_TargetAssemblyTypeName: GameController, Assembly-CSharp
+      - m_Target: {fileID: 604814272}
+        m_TargetAssemblyTypeName: GameUI, Assembly-CSharp
         m_MethodName: RestartGame
         m_Mode: 1
         m_Arguments:
@@ -757,6 +775,7 @@ GameObject:
   - component: {fileID: 604814270}
   - component: {fileID: 604814269}
   - component: {fileID: 604814268}
+  - component: {fileID: 604814272}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -849,6 +868,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &604814272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 604814267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66b78cbdf4bfc9f48b9947c758a18095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameUI
+  scoreText: {fileID: 370698047}
+  chargeBarFill: {fileID: 2021631703}
+  gameOverPanel: {fileID: 764091862}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -942,6 +976,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 667074488}
+  - component: {fileID: 667074490}
+  - component: {fileID: 667074489}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -964,6 +1000,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &667074489
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667074487}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6068b6d9bc842a94997da0f8ee14a15c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlatformSpawner
+  startingPlatform: {fileID: 112898934}
+  platformPrefab: {fileID: 2319146008291841798, guid: 50cad58f503b97747bb79a17bf737ecd, type: 3}
+  targetMarkerPrefab: {fileID: 0}
+  minHorizontalDistance: 1.8
+  maxHorizontalDistance: 3.2
+  minVerticalDistance: 2.5
+  maxVerticalDistance: 4
+  minWidthMultiplier: 0.7
+  maxWidthMultiplier: 1.2
+  minThicknessMultiplier: 0.8
+  maxThicknessMultiplier: 1.1
+  minimumSpawnX: -3.5
+  maximumSpawnX: 3.5
+--- !u!114 &667074490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667074487}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e129a74fe8d95bd4583967af51853cb6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  player: {fileID: 1592259052}
+  platformSpawner: {fileID: 667074489}
+  gameUI: {fileID: 604814272}
+  cameraFollow: {fileID: 519420033}
+  fallDistanceBelowCamera: 5
+  meteorHeightAboveCamera: 5
+  gameOverDelay: 1.5
 --- !u!1 &764091862
 GameObject:
   m_ObjectHideFlags: 0
@@ -1208,7 +1288,7 @@ BoxCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 918d06261fd23a844a2e98c1239cca5d, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1312,8 +1392,8 @@ Transform:
   m_GameObject: {fileID: 1211086796}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.14, y: 0.07, z: 0}
-  m_LocalScale: {x: 4.772904, y: 11.472674, z: 1}
+  m_LocalPosition: {x: 5.22, y: 8.3491, z: 0}
+  m_LocalScale: {x: 4.772904, y: 28.891502, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1332,7 +1412,7 @@ GameObject:
   - component: {fileID: 1592259048}
   - component: {fileID: 1592259052}
   m_Layer: 0
-  m_Name: Square
+  m_Name: Box
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1409,7 +1489,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!212 &1592259050
 SpriteRenderer:
@@ -1494,35 +1574,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 1592259047}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8111b2e459855d64cae68fea239da1f2, type: 3}
+  m_Script: {fileID: 11500000, guid: a2df67bf86e923c4d815c5a925d0ae43, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameController
-  player: {fileID: 1592259051}
-  playerRb: {fileID: 1592259049}
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  playerRigidbody: {fileID: 1592259049}
+  platformSpawner: {fileID: 667074489}
+  gameManager: {fileID: 667074490}
   jumpAngle: 75
-  minForce: 8
-  maxForce: 22
+  minimumForce: 5
+  maximumForce: 35
   chargeSpeed: 1.2
-  jumpExplosionFX: {fileID: 0}
-  meteorImpactFX: {fileID: 0}
-  meteorFlameTrail: {fileID: 0}
-  gameOverPanel: {fileID: 764091862}
-  fallLimit: -6
-  gameCamera: {fileID: 519420031}
-  cameraFollowOffsetY: 2
-  cameraFollowSpeed: 5
-  startingPlatform: {fileID: 112898934}
-  platformPrefab: {fileID: 2319146008291841798, guid: 50cad58f503b97747bb79a17bf737ecd, type: 3}
-  minHorizontalDistance: 1.8
-  maxHorizontalDistance: 3.2
-  minVerticalDistance: 2.5
-  maxVerticalDistance: 4
-  minWidthMultiplier: 0.7
-  maxWidthMultiplier: 1.2
-  minHeightMultiplier: 0.8
-  maxHeightMultiplier: 1.1
-  scoreText: {fileID: 0}
-  chargeBarFill: {fileID: 0}
+  jumpEffect: {fileID: 0}
+  meteorTrail: {fileID: 0}
 --- !u!1 &1720800503
 GameObject:
   m_ObjectHideFlags: 0
@@ -1551,7 +1614,7 @@ BoxCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 918d06261fd23a844a2e98c1239cca5d, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1655,8 +1718,8 @@ Transform:
   m_GameObject: {fileID: 1720800503}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.06, y: 0.34, z: 0}
-  m_LocalScale: {x: 4.772904, y: 11.472674, z: 1}
+  m_LocalPosition: {x: -5.26, y: 8.9935, z: 0}
+  m_LocalScale: {x: 4.772904, y: 28.000208, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1882,7 +1945,7 @@ SceneRoots:
   - {fileID: 604814271}
   - {fileID: 168537729}
   - {fileID: 667074488}
-  - {fileID: 1592259051}
   - {fileID: 1211086799}
   - {fileID: 1720800506}
   - {fileID: 112898937}
+  - {fileID: 1592259051}
