@@ -201,14 +201,29 @@ public partial class GameController
         isGrounded = false;
         hasScoredThisJump = false;
 
-        float force = Mathf.Lerp(minForce, maxForce, currentCharge);
+        float force = Mathf.Lerp(
+            minForce,
+            maxForce,
+            currentCharge);
+
         float radians = jumpAngle * Mathf.Deg2Rad;
+
         Vector2 jumpDirection = new Vector2(
             Mathf.Cos(radians) * direction,
             Mathf.Sin(radians));
 
-        playerRb.linearVelocity = jumpDirection * force;
-        playerRb.AddTorque(-direction * 5f, ForceMode2D.Impulse);
+        Vector2 currentVelocity = playerRb.linearVelocity;
+
+        currentVelocity.y = 0f;
+        playerRb.linearVelocity = currentVelocity;
+
+        playerRb.AddForce(
+            jumpDirection * force,
+            ForceMode2D.Impulse);
+
+        playerRb.AddTorque(
+            -direction * 5f,
+            ForceMode2D.Impulse);
 
         if (jumpExplosionFX)
         {
