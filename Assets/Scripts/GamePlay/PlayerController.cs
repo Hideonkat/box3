@@ -17,6 +17,9 @@ public class PlayerController : MonoBehaviour
     [Header("Effects")]
     [SerializeField] private ParticleSystem jumpEffect;
     [SerializeField] private GameObject meteorTrail;
+    [SerializeField] private float bounceSpeed = 5f;
+
+    private GameObject bouncedPlatform;
 
     private Collider2D playerCollider;
     private float chargeAmount;
@@ -164,7 +167,7 @@ public class PlayerController : MonoBehaviour
     }
 
     private void OnCollisionEnter2D(
-        Collision2D collision)
+    Collision2D collision)
     {
         if (!collision.gameObject.CompareTag("Platform"))
         {
@@ -178,41 +181,66 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (!hasJumped)
+        bool landedOnTop = false;
+
+        foreach (ContactPoint2D contact in collision.contacts)
         {
-            isGrounded = true;
-            return;
+            if (contact.normal.y > 0.5f)
+            {
+                landedOnTop = true;
+                break;
+            }
         }
 
-        if (platformSpawner == null)
+        if (!landedOnTop)
         {
             return;
         }
 
         isGrounded = true;
+
+        if (!hasJumped)
+        {
+            return;
+        }
+
         hasJumped = false;
 
-        float playerWidth =
-            GetPlayerWidth();
+        float playerWidth = GetPlayerWidth();
 
-        int points =
-            platformSpawner.CompleteLanding(
-                collision.gameObject,
-                transform.position.x,
-                playerWidth);
-
-        if (gameManager != null)
+        if (platformSpawner != null)
         {
-            gameManager.HandleSuccessfulLanding(points);
+            int points =
+                platformSpawner.CompleteLanding(
+                    collision.gameObject,
+                    transform.position.x,
+                    playerWidth);
+
+            if (gameManager != null)
+            {
+                gameManager.HandleSuccessfulLanding(points);
+            }
         }
+
+        Vector2 velocity = playerRigidbody.linearVelocity;
+        velocity.y = bounceSpeed;
+        playerRigidbody.linearVelocity = velocity;
+
     }
 
     private void OnCollisionExit2D(
-        Collision2D collision)
+    Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Platform"))
+        if (!collision.gameObject.CompareTag("Platform"))
         {
-            isGrounded = false;
+            return;
+        }
+
+        isGrounded = false;
+
+        if (bouncedPlatform == collision.gameObject)
+        {
+            bouncedPlatform = null;
         }
     }
 

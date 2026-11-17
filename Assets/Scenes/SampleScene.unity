@@ -1476,9 +1476,9 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 0.1
-  m_LinearDamping: 0
+  m_LinearDamping: 0.2
   m_AngularDamping: 0.05
-  m_GravityScale: 4
+  m_GravityScale: 5
   m_Material: {fileID: 6200000, guid: cd4479556b103ca49957a0c875f38357, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
@@ -1585,6 +1585,7 @@ MonoBehaviour:
   chargeSpeed: 1.2
   jumpEffect: {fileID: 0}
   meteorTrail: {fileID: 0}
+  bounceSpeed: 5
 --- !u!1 &1720800503
 GameObject:
   m_ObjectHideFlags: 0

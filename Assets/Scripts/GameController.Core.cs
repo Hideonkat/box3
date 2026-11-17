@@ -33,6 +33,14 @@ public partial class GameController
     public float cameraFollowOffsetY = 2f;
     public float cameraFollowSpeed = 5f;
 
+    [Header("Bounce Settings")]
+    public float bounceImpulse = 4f;
+    public float bounceCooldown = 0.2f;
+    public float minimumBounceVelocity = 0.5f;
+
+    private GameObject bouncedPlatform;
+    private float nextBounceTime;
+
     private void Start()
     {
         Application.targetFrameRate = 60;
@@ -62,6 +70,17 @@ public partial class GameController
         {
             gameCamera = Camera.main;
         }
+
+        if (playerRb != null)
+        {
+            playerRb.bodyType = RigidbodyType2D.Dynamic;
+            playerRb.gravityScale = 1f;
+            playerRb.linearDamping = 0.05f;
+            playerRb.angularDamping = 6f;
+            playerRb.constraints = RigidbodyConstraints2D.None;
+            playerRb.collisionDetectionMode =
+                CollisionDetectionMode2D.Continuous;
+        }
     }
 
     private void Update()
@@ -76,7 +95,29 @@ public partial class GameController
         HandleCharge();
         HandleScreenExit();
         HandleFall();
+    }
+
+    private void LateUpdate()
+    {
+        if (isWaitingForMeteor || isGameOver)
+        {
+            return;
+        }
+
         HandleCameraFollow();
+    }
+
+    private void FixedUpdate()
+    {
+        if (playerRb == null)
+        {
+            return;
+        }
+
+        playerRb.angularVelocity = Mathf.Clamp(
+            playerRb.angularVelocity,
+            -60f,
+            60f);
     }
 
     private void HandleCameraFollow()
@@ -211,19 +252,10 @@ public partial class GameController
         Vector2 jumpDirection = new Vector2(
             Mathf.Cos(radians) * direction,
             Mathf.Sin(radians));
+        
+        playerRb.linearVelocity = jumpDirection * force;
 
-        Vector2 currentVelocity = playerRb.linearVelocity;
-
-        currentVelocity.y = 0f;
-        playerRb.linearVelocity = currentVelocity;
-
-        playerRb.AddForce(
-            jumpDirection * force,
-            ForceMode2D.Impulse);
-
-        playerRb.AddTorque(
-            -direction * 5f,
-            ForceMode2D.Impulse);
+        playerRb.angularVelocity = 0f;
 
         if (jumpExplosionFX)
         {
@@ -241,18 +273,67 @@ public partial class GameController
             return;
         }
 
-        if (collision.gameObject.CompareTag("Platform"))
+        if (!collision.gameObject.CompareTag("Platform"))
         {
-            isGrounded = true;
-            landedPlatform = collision.gameObject;
+            return;
         }
+
+        bool landedOnTop = false;
+
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            if (contact.normal.y > 0.5f)
+            {
+                landedOnTop = true;
+                break;
+            }
+        }
+
+        if (!landedOnTop)
+        {
+            return;
+        }
+
+        isGrounded = true;
+        landedPlatform = collision.gameObject;
+
+        if (bouncedPlatform == collision.gameObject)
+        {
+            return;
+        }
+
+        bouncedPlatform = collision.gameObject;
+
+        Vector2 velocity = playerRb.linearVelocity;
+        velocity.y = 5f;
+        playerRb.linearVelocity = velocity;
+
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Platform"))
+        if (!collision.gameObject.CompareTag("Platform"))
         {
-            isGrounded = false;
+            return;
+        }
+
+        isGrounded = false;
+
+        if (bouncedPlatform == collision.gameObject)
+        {
+            bouncedPlatform = null;
         }
     }
+
+    private void StopSmallVerticalMotion()
+    {
+        Vector2 velocity = playerRb.linearVelocity;
+
+        if (Mathf.Abs(velocity.y) < minimumBounceVelocity)
+        {
+            velocity.y = 0f;
+            playerRb.linearVelocity = velocity;
+        }
+    }
+
 }
