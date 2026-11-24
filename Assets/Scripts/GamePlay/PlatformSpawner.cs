@@ -15,7 +15,7 @@ public class PlatformSpawner : MonoBehaviour
     [SerializeField] private float maxVerticalDistance = 4f;
 
     [Header("Platform Size")]
-    [SerializeField] private float minWidthMultiplier = 0.7f;
+    [SerializeField] private float minWidthMultiplier = 0.9f;
     [SerializeField] private float maxWidthMultiplier = 1.2f;
     [SerializeField] private float minThicknessMultiplier = 0.8f;
     [SerializeField] private float maxThicknessMultiplier = 1.1f;
@@ -143,28 +143,13 @@ public class PlatformSpawner : MonoBehaviour
     {
         direction *= -1;
 
-        float difficulty = Mathf.Clamp01(
-            successfulJumps / 20f);
-
         float horizontalDistance = Random.Range(
-            Mathf.Lerp(
-                minHorizontalDistance,
-                2.5f,
-                difficulty),
-            Mathf.Lerp(
-                maxHorizontalDistance,
-                4.2f,
-                difficulty));
+        minHorizontalDistance,
+        maxHorizontalDistance);
 
         float verticalDistance = Random.Range(
-            Mathf.Lerp(
-                minVerticalDistance,
-                2.8f,
-                difficulty),
-            Mathf.Lerp(
-                maxVerticalDistance,
-                4.8f,
-                difficulty));
+            minVerticalDistance,
+            maxVerticalDistance);
 
         float spawnX = direction * horizontalDistance;
 
@@ -173,7 +158,8 @@ public class PlatformSpawner : MonoBehaviour
             minimumSpawnX,
             maximumSpawnX);
 
-        float spawnY = lastPlatformY + verticalDistance;
+        float spawnY =
+            lastPlatformY + verticalDistance;
 
         Vector3 spawnPosition = new Vector3(
             spawnX,
@@ -186,14 +172,8 @@ public class PlatformSpawner : MonoBehaviour
             Quaternion.identity);
 
         float widthMultiplier = Random.Range(
-            Mathf.Lerp(
-                maxWidthMultiplier,
-                1f,
-                difficulty),
-            Mathf.Lerp(
-                minWidthMultiplier,
-                0.65f,
-                difficulty));
+            minWidthMultiplier,
+            maxWidthMultiplier);
 
         float thicknessMultiplier = Random.Range(
             minThicknessMultiplier,
