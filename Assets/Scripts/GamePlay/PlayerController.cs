@@ -16,8 +16,14 @@ public class PlayerController : MonoBehaviour
 
     [Header("Effects")]
     [SerializeField] private ParticleSystem jumpEffect;
-    [SerializeField] private GameObject meteorTrail;
     [SerializeField] private float bounceSpeed = 5f;
+    [SerializeField] private float highWallTolerance = 0.03f;
+    [SerializeField] private float playerHeight = 0.22f;
+
+    [Header("Wall References")]
+    [SerializeField] private GameObject square1;
+    [SerializeField] private GameObject square2;
+    [SerializeField] private float highWallHeight = 0.221f;
 
     private GameObject bouncedPlatform;
 
@@ -26,6 +32,63 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded = true;
     private bool isCharging;
     private bool hasJumped;
+    private bool touchedHighWall;
+
+    private bool IsWallCollision(Collision2D collision)
+    {
+        if (square1 == null || square2 == null)
+        {
+            return false;
+        }
+
+        Transform collisionTransform =
+            collision.transform;
+
+        bool isSquare1 =
+            collisionTransform == square1.transform ||
+            collisionTransform.IsChildOf(square1.transform);
+
+        bool isSquare2 =
+            collisionTransform == square2.transform ||
+            collisionTransform.IsChildOf(square2.transform);
+
+        return isSquare1 || isSquare2;
+    }
+
+    private void CheckHighWallContact(
+    Collision2D collision)
+    {
+        if (playerCollider == null)
+        {
+            return;
+        }
+
+        float highWallLimit =
+            playerCollider.bounds.min.y +
+            highWallHeight;
+
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            bool isSideContact =
+                Mathf.Abs(contact.normal.x) > 0.5f;
+
+            bool isAbovePlayerHeight =
+                contact.point.y > highWallLimit;
+
+            if (isSideContact &&
+                isAbovePlayerHeight)
+            {
+                touchedHighWall = true;
+
+                Debug.Log(
+                    $"High wall detected | " +
+                    $"Contact Y: {contact.point.y:F3} | " +
+                    $"Limit Y: {highWallLimit:F3}");
+
+                return;
+            }
+        }
+    }
 
     private void Awake()
     {
@@ -36,16 +99,12 @@ public class PlayerController : MonoBehaviour
 
         playerCollider = GetComponent<Collider2D>();
 
-        if (meteorTrail != null)
-        {
-            meteorTrail.SetActive(false);
-        }
     }
 
     private void Update()
     {
         if (gameManager != null &&
-            (gameManager.IsGameOver || gameManager.IsMeteorState))
+    gameManager.IsGameOver)
         {
             return;
         }
@@ -130,6 +189,7 @@ public class PlayerController : MonoBehaviour
 
         isGrounded = false;
         hasJumped = true;
+        touchedHighWall = false;
 
         float force = Mathf.Lerp(
             minimumForce,
@@ -169,15 +229,18 @@ public class PlayerController : MonoBehaviour
     private void OnCollisionEnter2D(
     Collision2D collision)
     {
-        if (!collision.gameObject.CompareTag("Platform"))
+        if (IsWallCollision(collision))
         {
+            if (hasJumped)
+            {
+                CheckHighWallContact(collision);
+            }
+
             return;
         }
 
-        if (gameManager != null &&
-            gameManager.IsMeteorState)
+        if (!collision.gameObject.CompareTag("Platform"))
         {
-            gameManager.HandleMeteorImpact();
             return;
         }
 
@@ -208,24 +271,37 @@ public class PlayerController : MonoBehaviour
 
         float playerWidth = GetPlayerWidth();
 
-        if (platformSpawner != null)
+        if (platformSpawner != null &&
+            gameManager != null)
         {
-            int points =
+            bool landingSucceeded =
                 platformSpawner.CompleteLanding(
                     collision.gameObject,
                     transform.position.x,
                     playerWidth);
 
-            if (gameManager != null)
+            if (landingSucceeded)
             {
-                gameManager.HandleSuccessfulLanding(points);
+                bool isPlusJump =
+                    !touchedHighWall;
+
+                Debug.Log(
+                    $"Landing | " +
+                    $"Plus: {isPlusJump} | " +
+                    $"High wall: {touchedHighWall}");
+
+                gameManager.RegisterSuccessfulJump(
+                    isPlusJump);
+
+                gameManager.HandleSuccessfulLanding();
             }
         }
 
-        Vector2 velocity = playerRigidbody.linearVelocity;
+        Vector2 velocity =
+            playerRigidbody.linearVelocity;
+
         velocity.y = bounceSpeed;
         playerRigidbody.linearVelocity = velocity;
-
     }
 
     private void OnCollisionExit2D(
@@ -244,32 +320,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void SetMeteorState(bool enabled)
-    {
-        if (meteorTrail != null)
-        {
-            meteorTrail.SetActive(enabled);
-        }
-
-        if (enabled)
-        {
-            isGrounded = false;
-            hasJumped = false;
-        }
-    }
-
-    public void LaunchAsMeteor(
-        int direction)
-    {
-        if (playerRigidbody == null)
-        {
-            return;
-        }
-
-        playerRigidbody.simulated = true;
-        playerRigidbody.linearVelocity =
-            new Vector2(direction * 3f, -30f);
-    }
 
     public void DisablePhysics()
     {

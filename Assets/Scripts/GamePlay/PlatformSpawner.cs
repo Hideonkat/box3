@@ -24,6 +24,11 @@ public class PlatformSpawner : MonoBehaviour
     [SerializeField] private float minimumSpawnX = -3.5f;
     [SerializeField] private float maximumSpawnX = 3.5f;
 
+    [Header("Wall References")]
+    [SerializeField] private GameObject square1;
+    [SerializeField] private GameObject square2;
+    [SerializeField] private float wallOverlap = 0.1f;
+
     private readonly List<GameObject> activePlatforms =
         new List<GameObject>();
 
@@ -78,22 +83,17 @@ public class PlatformSpawner : MonoBehaviour
         SpawnNextPlatform();
     }
 
-    public int CompleteLanding(
-        GameObject landedPlatform,
-        float playerCenterX,
-        float playerWidth)
+    public bool CompleteLanding(
+    GameObject landedPlatform,
+    float playerCenterX,
+    float playerWidth)
     {
         if (landedPlatform == null ||
             landedPlatform == currentPlatform ||
             !activePlatforms.Contains(landedPlatform))
         {
-            return 0;
+            return false;
         }
-
-        int points = CalculateScore(
-            landedPlatform,
-            playerCenterX,
-            playerWidth);
 
         GameObject oldPlatform = currentPlatform;
 
@@ -108,7 +108,7 @@ public class PlatformSpawner : MonoBehaviour
 
         SpawnNextPlatform();
 
-        return points;
+        return true;
     }
 
     public void DestroyAllPlatforms()
@@ -141,34 +141,25 @@ public class PlatformSpawner : MonoBehaviour
 
     private void SpawnNextPlatform()
     {
-        direction *= -1;
+        if (platformPrefab == null ||
+            square1 == null ||
+            square2 == null)
+        {
+            return;
+        }
 
-        float horizontalDistance = Random.Range(
-        minHorizontalDistance,
-        maxHorizontalDistance);
+        direction *= -1;
 
         float verticalDistance = Random.Range(
             minVerticalDistance,
             maxVerticalDistance);
 
-        float spawnX = direction * horizontalDistance;
-
-        spawnX = Mathf.Clamp(
-            spawnX,
-            minimumSpawnX,
-            maximumSpawnX);
-
         float spawnY =
             lastPlatformY + verticalDistance;
 
-        Vector3 spawnPosition = new Vector3(
-            spawnX,
-            spawnY,
-            0f);
-
         GameObject newPlatform = Instantiate(
             platformPrefab,
-            spawnPosition,
+            new Vector3(0f, spawnY, 0f),
             Quaternion.identity);
 
         float widthMultiplier = Random.Range(
@@ -185,6 +176,76 @@ public class PlatformSpawner : MonoBehaviour
                 widthMultiplier,
                 thicknessMultiplier,
                 1f));
+
+
+        Collider2D platformCollider =
+    newPlatform.GetComponentInChildren<Collider2D>(
+        true);
+
+        Collider2D square1Collider =
+            square1.GetComponentInChildren<Collider2D>(
+                true);
+
+        Collider2D square2Collider =
+            square2.GetComponentInChildren<Collider2D>(
+                true);
+
+        if (platformCollider == null ||
+            square1Collider == null ||
+            square2Collider == null)
+        {
+            Destroy(newPlatform);
+            return;
+        }
+
+        Collider2D leftWallCollider;
+        Collider2D rightWallCollider;
+
+        if (square1Collider.bounds.center.x <
+            square2Collider.bounds.center.x)
+        {
+            leftWallCollider = square1Collider;
+            rightWallCollider = square2Collider;
+        }
+        else
+        {
+            leftWallCollider = square2Collider;
+            rightWallCollider = square1Collider;
+        }
+
+        Bounds platformBounds =
+            platformCollider.bounds;
+
+        float horizontalCorrection;
+
+        if (direction < 0)
+        {
+            float targetRightEdge =
+                leftWallCollider.bounds.max.x +
+                wallOverlap;
+
+            horizontalCorrection =
+                targetRightEdge -
+                platformBounds.max.x;
+        }
+        else
+        {
+            float targetLeftEdge =
+                rightWallCollider.bounds.min.x -
+                wallOverlap;
+
+            horizontalCorrection =
+                targetLeftEdge -
+                platformBounds.min.x;
+        }
+
+        Vector3 platformPosition =
+            newPlatform.transform.position;
+
+        platformPosition.x += horizontalCorrection;
+
+        newPlatform.transform.position =
+            platformPosition;
 
         activePlatforms.Add(newPlatform);
         lastPlatformY = spawnY;
@@ -216,31 +277,6 @@ public class PlatformSpawner : MonoBehaviour
             1f);
     }
 
-    private int CalculateScore(
-        GameObject platform,
-        float playerCenterX,
-        float playerWidth)
-    {
-        float platformWidth = GetPlatformWidth(platform);
-        float targetWidth = Mathf.Min(
-            playerWidth,
-            platformWidth);
-
-        float platformCenterX =
-            platform.transform.position.x;
-
-        float centerOffset = Mathf.Abs(
-            playerCenterX - platformCenterX);
-
-        float maximumOffset = Mathf.Max(
-            platformWidth * 0.5f,
-            targetWidth * 0.5f);
-
-        float accuracy = Mathf.Clamp01(
-            1f - centerOffset / maximumOffset);
-
-        return Mathf.RoundToInt(accuracy * 1000f);
-    }
 
     private float GetPlatformWidth(GameObject platform)
     {

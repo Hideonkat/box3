@@ -11,21 +11,58 @@ public class GameManager : MonoBehaviour
     [Header("Fall Settings")]
     [SerializeField] private float fallDistanceBelowCamera = 5f;
 
-    [Header("Meteor Settings")]
-    [SerializeField] private float meteorHeightAboveCamera = 5f;
-    [SerializeField] private float gameOverDelay = 1.5f;
+    [Header("Attack Progression")]
+    [SerializeField] private float firstPlusMultiplier = 1.5f;
+    [SerializeField] private float plusMultiplierStep = 0.5f;
+
+    private int totalAttack;
+    private float currentPlusMultiplier = 1f;
+    private bool hasPlusChain;
 
     private Camera mainCamera;
-    private bool isMeteorState;
     private bool isGameOver;
-    private bool meteorImpactHandled;
 
-    public bool IsMeteorState
+    public int TotalAttack
     {
         get
         {
-            return isMeteorState;
+            return totalAttack;
         }
+    }
+
+    public float CurrentPlusMultiplier
+    {
+        get
+        {
+            return currentPlusMultiplier;
+        }
+    }
+
+    public void RegisterSuccessfulJump(bool isPlusJump)
+    {
+        totalAttack++;
+
+        if (!isPlusJump)
+        {
+            hasPlusChain = false;
+            currentPlusMultiplier = 1f;
+        }
+        else if (!hasPlusChain)
+        {
+            hasPlusChain = true;
+            currentPlusMultiplier =
+                firstPlusMultiplier;
+        }
+        else
+        {
+            currentPlusMultiplier +=
+                plusMultiplierStep;
+        }
+
+        Debug.Log(
+            $"Jump success: " +
+            $"ATK = {totalAttack}, " +
+            $"Plus multiplier = x{currentPlusMultiplier}");
     }
 
     public bool IsGameOver
@@ -33,16 +70,6 @@ public class GameManager : MonoBehaviour
         get
         {
             return isGameOver;
-        }
-    }
-
-    private void Start()
-    {
-        if (cameraFollow != null &&
-            platformSpawner != null)
-        {
-            cameraFollow.SetTarget(
-                platformSpawner.CurrentPlatformTransform);
         }
     }
 
@@ -73,6 +100,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (cameraFollow != null &&
+            platformSpawner != null)
+        {
+            cameraFollow.SetTarget(
+                platformSpawner.CurrentPlatformTransform);
+        }
+    }
+
     private void Update()
     {
         if (isGameOver || player == null)
@@ -80,33 +117,17 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (isMeteorState)
-        {
-            return;
-        }
-
         if (IsBelowCamera())
         {
             HandleFallGameOver();
-            return;
-        }
-
-        if (IsHighAboveCamera())
-        {
-            StartMeteorState();
         }
     }
 
-    public void HandleSuccessfulLanding(int points)
+    public void HandleSuccessfulLanding()
     {
-        if (isGameOver || isMeteorState)
+        if (isGameOver)
         {
             return;
-        }
-
-        if (gameUI != null)
-        {
-            gameUI.AddScore(points);
         }
 
         if (cameraFollow != null &&
@@ -123,57 +144,6 @@ public class GameManager : MonoBehaviour
         {
             gameUI.SetCharge(value);
         }
-    }
-
-    public void StartMeteorState()
-    {
-        if (isMeteorState || isGameOver || player == null)
-        {
-            return;
-        }
-
-        isMeteorState = true;
-
-        player.SetMeteorState(true);
-
-        int direction = 1;
-
-        if (platformSpawner != null)
-        {
-            direction = platformSpawner.NextDirection;
-        }
-
-        player.LaunchAsMeteor(direction);
-    }
-
-    public void HandleMeteorImpact()
-    {
-        if (!isMeteorState || meteorImpactHandled)
-        {
-            return;
-        }
-
-        meteorImpactHandled = true;
-        isMeteorState = false;
-
-        if (player != null)
-        {
-            player.DisablePhysics();
-        }
-
-        if (platformSpawner != null)
-        {
-            platformSpawner.DestroyAllPlatforms();
-        }
-
-        if (gameUI != null)
-        {
-            gameUI.HideGameplayUI();
-        }
-
-        Invoke(
-            nameof(ShowGameOver),
-            gameOverDelay);
     }
 
     private void HandleFallGameOver()
@@ -214,20 +184,5 @@ public class GameManager : MonoBehaviour
 
         return player.transform.position.y <
             cameraBottom - fallDistanceBelowCamera;
-    }
-
-    private bool IsHighAboveCamera()
-    {
-        if (mainCamera == null)
-        {
-            return player.transform.position.y > 15f;
-        }
-
-        float cameraTop =
-            mainCamera.transform.position.y +
-            mainCamera.orthographicSize;
-
-        return player.transform.position.y >
-            cameraTop + meteorHeightAboveCamera;
     }
 }
